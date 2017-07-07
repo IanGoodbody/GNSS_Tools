@@ -137,7 +137,7 @@ function [ephTags, ephData, utcOffset] = getNewEphemeris(logDateZulu)
 		ephData(record, ephTags.fit) = str2num(line(23:41));
 	end % Ephemeris record for
 	fclose(fileID);
-	delete(ephFile);
+	%delete(ephFile);
 	save(strcat(ephFile, '.mat'), 'ephData');
 	fprintf('%s.mat parsed and saved.\n', ephFile);
 end % function
