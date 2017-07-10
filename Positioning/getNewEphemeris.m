@@ -36,7 +36,7 @@ function [ephTags, ephData, utcOffset] = getNewEphemeris(logDateZulu)
 		year2D = year2D + 100;
 	end % 2 digit year if
 
-	yearDays = ceil(days(logDateZulu - datetime(logDateZulu.Year, 1, 1)));
+	yearDays = floor(days(logDateZulu - datetime(logDateZulu.Year, 1, 1))) + 1;
 	ephFile = sprintf('hour%03i0.%in', yearDays, year2D);
 	fprintf('Updating %s\n', ...
 	 strcat(ephFile, '.mat'));
@@ -57,11 +57,17 @@ function [ephTags, ephData, utcOffset] = getNewEphemeris(logDateZulu)
 	fileID = fopen(ephFile, 'r');
 	% Find start of data
 	line = fgetl(fileID);
-	while ~strcmp(line(61:80), 'END OF HEADER       ')
-		if strcmp(line(61:80), 'LEAP SECONDS        ')
+	while length(line) < 80
+		line = strcat(line, ' ');
+	end
+	while ~strncmp(line(61:end), 'END OF HEADER', 13)
+		if strncmp(line(61:end), 'LEAP SECONDS', 12)
 			utcOffset = str2num(line(1:6));
 		end
 		line = fgetl(fileID);
+		while length(line) < 80
+			line = strcat(line, ' ');
+		end
 	end
 	dataStart = ftell(fileID);
 	% Scan though and count the lines to determine the number of records
@@ -131,13 +137,12 @@ function [ephTags, ephData, utcOffset] = getNewEphemeris(logDateZulu)
 		% Line 7: parameters
 		line = fgetl(fileID);
 		ephData(record, ephTags.Tgd) = str2num(line(42:60));
-		ephData(record, ephTags.Cis) = str2num(line(61:79));
 		% Line 8: parameters
 		line = fgetl(fileID);
 		ephData(record, ephTags.fit) = str2num(line(23:41));
 	end % Ephemeris record for
 	fclose(fileID);
-	%delete(ephFile);
+	delete(ephFile);
 	save(strcat(ephFile, '.mat'), 'ephData');
 	fprintf('%s.mat parsed and saved.\n', ephFile);
 end % function

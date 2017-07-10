@@ -1,4 +1,4 @@
-function [svPos, clkErr] = GetSvPos(prn, transTime, rcvrPos, ...
+function [svPos, clkErr, svEph] = GetSvPos(prn, transTime, rcvrPos, ...
  eph, ephTags)
 	
 	svEph = zeros(length(prn), length(fields(ephTags)));
@@ -50,11 +50,11 @@ function [svPos, clkErr] = GetSvPos(prn, transTime, rcvrPos, ...
 
 	% Parmeter corrections
 	delta_u = svEph(:, ephTags.Cus).*sin(2*Phi) + ...
-	          svEph(:, ephTags.Cuc).*cos(2*Phi); % (rad)
+	          svEph(:, ephTags.Cuc).*cos(2*Phi) % (rad)
 	delta_r = svEph(:, ephTags.Crs).*sin(2*Phi) + ...
-	          svEph(:, ephTags.Crc).*cos(2*Phi); % (m)
+	          svEph(:, ephTags.Crc).*cos(2*Phi) % (m)
 	delta_i = svEph(:, ephTags.Cis).*sin(2*Phi) + ...
-	          svEph(:, ephTags.Cic).*cos(2*Phi); % (rad)
+	          svEph(:, ephTags.Cic).*cos(2*Phi) % (rad)
 
 	u_sv = delta_u + Phi; % (rad) Corrected argument of latitude
 	r_sv = svEph(:, ephTags.sqrtA).^2.*(1-svEph(:, ephTags.e).*cos(E)) + delta_r; % (m) corrected radius
