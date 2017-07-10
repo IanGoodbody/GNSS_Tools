@@ -1,35 +1,51 @@
 function [ephTags, ephData, utcOffset] = loadEphemeris(rinexNavFile)
+% LOADEPHEMERIS parses a rinex navigation file (with extension .YYn) into an 
+% Nx30 array of ephemeris parmeters indexed by the fields in the ephTags struc.
+%  [ephTags, ephData, utcOffset] =  LADEPHEMERIS(rinexNavFile)
+%
+% This funciton returns the entire ephemeris set contained in the file into 
+% a single array so other programs are resonsible for extracting the relevent
+% rows with the desired time of ephemeris and PRN.
+%
+% Parameters
+%   rinexNavFile : A rinex GPS navigation file, version 2.11
+% Returns
+%   ephTags   : Structure containing the column indeices for the output 
+%               ephemeris patameters
+%   ephData   : Nx30 array containing all the ephemeris data in the file
+%   utcOffset : UTC time offset (s) UTC = GPST + utcOffset
+
 	% Define indicies for ephemeris paramters
-	ephTags.PRN      =  1;
-	ephTags.Toe      =  2;
-	ephTags.week     =  3;
-	ephTags.sqrtA    =  4;
-	ephTags.e        =  5;
-	ephTags.i0       =  6;
-	ephTags.Omega0   =  7;
-	ephTags.omega    =  8;
-	ephTags.M0       =  9;
-	ephTags.DeltaN   = 10;
-	ephTags.iDot     = 11;
-	ephTags.OmegaDot = 12;
-	ephTags.Cuc      = 13;
-	ephTags.Cus      = 14;
-	ephTags.Crc      = 15;
-	ephTags.Crs      = 16;
-	ephTags.Cic      = 17;
-	ephTags.Cis      = 18;
-	ephTags.Toc      = 19;
-	ephTags.A0       = 20;
-	ephTags.A1       = 21;
-	ephTags.A2       = 22;
-	ephTags.Tgd      = 23;
-	ephTags.fit      = 24;
-	ephTags.GPST_y   = 25;
-	ephTags.GPST_m   = 26;
-	ephTags.GPST_d   = 27;
-	ephTags.GPST_h   = 28;
-	ephTags.GPST_mi  = 29;
-	ephTags.GPST_s   = 30;
+	ephTags.PRN      =  1; % Unitless
+	ephTags.Toe      =  2; % Seconds since the start of the week
+	ephTags.week     =  3; % Week number
+	ephTags.sqrtA    =  4; % m^{1/2}
+	ephTags.e        =  5; % Unitless
+	ephTags.i0       =  6; % rad
+	ephTags.Omega0   =  7; % rad
+	ephTags.omega    =  8; % rad
+	ephTags.M0       =  9; % rad
+	ephTags.DeltaN   = 10; % rad/s
+	ephTags.iDot     = 11; % rad/s
+	ephTags.OmegaDot = 12; % rad/s
+	ephTags.Cuc      = 13; % rad
+	ephTags.Cus      = 14; % rad
+	ephTags.Crc      = 15; % m
+	ephTags.Crs      = 16; % m
+	ephTags.Cic      = 17; % rad
+	ephTags.Cis      = 18; % rad
+	ephTags.Toc      = 19; % s
+	ephTags.A0       = 20; % s
+	ephTags.A1       = 21; % s/s
+	ephTags.A2       = 22; % s/s^2
+	ephTags.Tgd      = 23; % s
+	ephTags.fit      = 24; % hr; Ephemeris fit intereval, 0 if undknown
+	ephTags.GPST_y   = 25; % year
+	ephTags.GPST_m   = 26; % month
+	ephTags.GPST_d   = 27; % day
+	ephTags.GPST_h   = 28; % hr
+	ephTags.GPST_mi  = 29; % minute
+	ephTags.GPST_s   = 30; % s
 
 	if exist(strcat(rinexNavFile, '.mat'), 'file')
 		load(strcat(rinexNavFile, '.mat'));
