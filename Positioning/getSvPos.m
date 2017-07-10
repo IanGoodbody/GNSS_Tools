@@ -1,6 +1,18 @@
-function [svPos, clkErr, svEph] = GetSvPos(prn, transTime, rcvrPos, ...
+function [svPos, clkErr] = getSvPos(prn, transTime, rcvrPos, ...
  eph, ephTags)
-	
+% GETSVPOS calculates satellite cartesian position for a list of PRNs
+%   [svPos, clkErr] = getSvPOs(prn, transTime, rcvrPos, eph, ephTags)
+%
+% Paramters:
+%   prn       : Nx1 vector of visible satellite PRN labels
+%   transTime : Nx1 vector of SV transmission times/time for positioning (s)
+%   rcvrPos   : 1x3 vector containing cartesian coordinates of the receiver (m)
+%   eph       : ephemeris array returned by 'loadEphemeris' or 'getNewEphemeris'
+%   ephTags   : ephemeris index lables from 'loadEphemeris' or 'getNewEphemeris'
+% Returns:
+%   svPos  : Nx3 Array of cartesian positions for the N sattelites (m)
+%   clkErr : Nx1 Vector containing the clock errors for each satelite (s)
+
 	svEph = zeros(length(prn), length(fields(ephTags)));
 	for prnIdx = 1:length(prn)
 		svEphAll = eph( find(eph(:, ephTags.PRN) == prn(prnIdx)), :);
