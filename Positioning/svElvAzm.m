@@ -11,7 +11,7 @@ function [elevation, azmuth] = svElvAzm(svPos, rcvrPos, rcvrLat, rcvrLon);
 %   elevation : Nx1 vector of satellite elevations above the horizon (rad)
 %   Azmuth    : Nx1 vector of satellite azmuths relative to local north (rad)
 
-	los = svPos - recvrPos; % line of sight vector
+	los = svPos - rcvrPos; % line of sight vector
 	losMag = sqrt( sum(los.^2, 2) ); % Nx1 matrix of los vector magnitudes
 	localRot = [
 	 -sin(rcvrLon), -sin(rcvrLat)*cos(rcvrLon), cos(rcvrLat)*cos(rcvrLon);
@@ -23,4 +23,4 @@ function [elevation, azmuth] = svElvAzm(svPos, rcvrPos, rcvrLat, rcvrLon);
 
 	elevation = asin(losLocal(:, 3)./losMag);
 	azmuth    = atan2(losLocal(:, 1), losLocal(:, 2));
-end;
+end

@@ -7,20 +7,14 @@ function [svPos, clkErr] = getSvPos(prn, transTime, rcvrPos, ...
 %   prn       : Nx1 vector of visible satellite PRN labels
 %   transTime : Nx1 vector of SV transmission times/time for positioning (s)
 %   rcvrPos   : 1x3 vector containing cartesian coordinates of the receiver (m)
-%   eph       : ephemeris array returned by 'loadEphemeris' or 'getNewEphemeris'
+%   eph       : Nx30 array containing the relevent ephemeris information
 %   ephTags   : ephemeris index lables from 'loadEphemeris' or 'getNewEphemeris'
 % Returns:
 %   svPos  : Nx3 Array of cartesian positions for the N sattelites (m)
 %   clkErr : Nx1 Vector containing the clock errors for each satelite (s)
 
-	svEph = zeros(length(prn), length(fields(ephTags)));
-	for prnIdx = 1:length(prn)
-		svEphAll = eph( find(eph(:, ephTags.PRN) == prn(prnIdx)), :);
-		svEph(prnIdx, :) = svEphAll(max(find( ... 
-		  abs(svEphAll(:, ephTags.Toe)-transTime) < 7200 ...
-		 )), :); % Ephemerides valid within 2 hours of Toe
-	end
-	svEph = sortrows(svEph, ephTags.PRN);
+	prn = sort(prn); % put values in ascending order by PRN
+	svEph = sortrows(eph, ephTags.PRN);
 
 	mu_e      = 3.986005e14;     % (m^3 s^-2) Gravitation constant for earth
 	d_Omega_e = 7.2921151467e-5; % (rad s^-1) Rotation rate of earth
@@ -62,11 +56,11 @@ function [svPos, clkErr] = getSvPos(prn, transTime, rcvrPos, ...
 
 	% Parmeter corrections
 	delta_u = svEph(:, ephTags.Cus).*sin(2*Phi) + ...
-	          svEph(:, ephTags.Cuc).*cos(2*Phi) % (rad)
+	          svEph(:, ephTags.Cuc).*cos(2*Phi); % (rad)
 	delta_r = svEph(:, ephTags.Crs).*sin(2*Phi) + ...
-	          svEph(:, ephTags.Crc).*cos(2*Phi) % (m)
+	          svEph(:, ephTags.Crc).*cos(2*Phi); % (m)
 	delta_i = svEph(:, ephTags.Cis).*sin(2*Phi) + ...
-	          svEph(:, ephTags.Cic).*cos(2*Phi) % (rad)
+	          svEph(:, ephTags.Cic).*cos(2*Phi); % (rad)
 
 	u_sv = delta_u + Phi; % (rad) Corrected argument of latitude
 	r_sv = svEph(:, ephTags.sqrtA).^2.*(1-svEph(:, ephTags.e).*cos(E)) + delta_r; % (m) corrected radius
