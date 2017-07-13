@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <inttypes.h>
 #include "parseNovAtel.h"
 
 #define HEAD_BUFF_SIZE 4
@@ -19,7 +20,7 @@
 #define HEAD_WEEK_O 14
 
 #define HEAD_GPST_B 4
-#define HEAD_GPST_O 14
+#define HEAD_GPST_O 16
 
 #define HEAD_TSTAT_B 1
 #define HEAD_TSTAT_O 13
@@ -29,8 +30,9 @@
 
 int parseHeader(FILE* binLog, headerDataSt* headerData, long int logStart)
 {
-	unsigned char preamble[] = {0xAA, 0x44, 0x12};
+	uint8_t preamble[] = {0xAA, 0x44, 0x12};
 
+	fseek(binLog, logStart, SEEK_SET);
 	int i; // Check the preamble
 	for(i = 0; i < 3; i++){
 		if(fgetc(binLog) != preamble[i]){
@@ -57,7 +59,7 @@ int parseHeader(FILE* binLog, headerDataSt* headerData, long int logStart)
 	// Week Number
 	fseek(binLog, logStart+HEAD_WEEK_O, SEEK_SET);
 	fread(&headerData->weekNum, HEAD_WEEK_B, 1, binLog);
-	// GPST
+	// GPST (ms)
 	fseek(binLog, logStart+HEAD_GPST_O, SEEK_SET);
 	fread(&headerData->gpst, HEAD_GPST_B, 1, binLog);
 	// Time Status
@@ -66,6 +68,19 @@ int parseHeader(FILE* binLog, headerDataSt* headerData, long int logStart)
 	// Receiver Status
 	fseek(binLog, logStart+HEAD_RSTAT_O, SEEK_SET);
 	fread(&headerData->rcvrStat, HEAD_RSTAT_B, 1, binLog);
+
+	#if PARSE_VERBOSE // PRINT the header output
+	fprintf(stdout, "Header Fields:\n");
+	fprintf(stdout, "  Header Length: %hhu 0x%04hhX\n", headerData->headLen, headerData->headLen);
+	fprintf(stdout, "  Message ID: %hu\n", headerData->msgID);
+	fprintf(stdout, "  Message Type: 0x%hhX\n", headerData->msgType);
+	fprintf(stdout, "  Message Length: %hu 0x%04hX\n", headerData->msgLen, headerData->msgLen);
+	fprintf(stdout, "  Week Number: %hu\n", headerData->weekNum);
+	fprintf(stdout, "  GPST: %u\n", headerData->gpst);
+	fprintf(stdout, "  Time Status: %hhu; %s\n", headerData->timeStat,
+	 decodeTimeStatus(headerData->timeStat));
+	fprintf(stdout, "  Receiver Status: 0x%X\n", headerData->rcvrStat);
+	#endif
 
 	return HEAD_GOOD;
 }
@@ -76,45 +91,33 @@ void indicateRcvrStatus(headerDataSt* headerData)
 	printf("Reference Table 140 in the firmware reference manual.\n");
 }
 
-void inidcateTimeStatus(headerDataSt* headerData)
+const char* decodeTimeStatus(uint8_t timeStat)
 {
-	switch(headerData->timeStat){
+	switch(timeStat){
 		case 20: // Unknown
-			printf("20:  Time validity is unknown\n");
-			break;
+			return "Time validity is unknown";
 		case 60: // Approximate
-			printf("60:  Time is set approximately\n");
-			break;
+			return "Time is set approximately";
 		case 80: // Coarse Adjusting
-			printf("80:  Time is approaching coase precision\n");
-			break;
+			return "Time is approaching coase precision";
 		case 100: // Coarse
-			printf("100: Time is valid to coarse precision\n");
-			break;
+			return "Time is valid to coarse precision";
 		case 120: // Coarse Steering
-			printf("120: Time is coase set and being steered\n");
-			break;
+			return "Time is coase set and being steered";
 		case 130: // Freewheeling
-			printf("130: Positionis lost and the range bias cannot be calculated\n");
-			break;
+			return "Positionis lost and the range bias cannot be calculated";
 		case 140: // Fine Adjusting
-			printf("140: Time is adjsting to fine precision\n");
-			break;
+			return "Time is adjsting to fine precision";
 		case 160: // Fine
-			printf("160: Time has fine precision\n");
-			break;
+			return "Time has fine precision";
 		case 170: // Fine Backup Steering
-			printf("170: Time is fine set and is being steered by the backup system\n");
-			break;
+			return "Time is fine set and is being steered by the backup system\n";
 		case 180: // Fine Steering
-			printf("180: Time is fine set and being steered\n");
-			break;
+			return "Time is fine set and being steered";
 		case 200: // Sat Time
-			printf("200: Time from satellite (only in ephemeris or almanac logs)\n");
-			break;
+			return "Time from satellite (only in ephemeris or almanac logs)";
 		default:
-			printf("%i: Invalid time status code\n", (int)headerData->timeStat);
-			break;
+			return "Invalid time status code";
 	}
 }
 

@@ -1,9 +1,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <inttypes.h>
 #include "parseNovAtel.h"
 
-#define BUFFER_SIZE 1024
+#define BUFFER_SIZE 512
+#define DEBUG 1
 
 #define CRC_B 4
 #define CRC_POLY 0xEDB88320
@@ -20,19 +22,21 @@ int main(int argc, char** argv)
 	sizeMatch = sizeMatch && (sizeof(        double) ==  8);
 	sizeMatch = sizeMatch && (sizeof(   long double) == 16);
 	if(!sizeMatch){
-		printf("Native data types sizes do not match assumed sizes!\n");
-		printf("  +===============================+\n");
-		printf("  |Data Type   | Assumed | Native |\n");
-		printf("  |------------+---------+--------|\n");
-		printf("  |char        |       1 |     %2i |\n", (int)sizeof(unsigned char));
-		printf("  |short int   |       2 |     %2i |\n", (int)sizeof(unsigned short));
-		printf("  |int         |       4 |     %2i |\n", (int)sizeof(unsigned int));
-		printf("  |long int    |       8 |     %2i |\n", (int)sizeof(unsigned long));
-		printf("  |float       |       4 |     %2i |\n", (int)sizeof(float));
-		printf("  |double      |       8 |     %2i |\n", (int)sizeof(double));
-		printf("  |long double |      16 |     %2i |\n", (int)sizeof(long double));
-		printf("  +===============================+\n");
-		return 7;
+		fprintf(stderr, "WARNING: Native floating point data types sizes do not match assumed sizes!\n");
+		fprintf(stderr, "  Integer types are specified with <inttypes.h> but may causes warnings for\n  printf outputs\n");
+		fprintf(stderr, "  +===============================+\n");
+		fprintf(stderr, "  |Data Type   | Assumed | Native |\n");
+		fprintf(stderr, "  |------------+---------+--------|\n");
+		fprintf(stderr, "  |char        |       1 |     %2i |\n", (int)sizeof(unsigned char));
+		fprintf(stderr, "  |short int   |       2 |     %2i |\n", (int)sizeof(unsigned short));
+		fprintf(stderr, "  |int         |       4 |     %2i |\n", (int)sizeof(unsigned int));
+		fprintf(stderr, "  |long int    |       8 |     %2i |\n", (int)sizeof(unsigned long));
+		fprintf(stderr, "  |------------+---------+--------|\n");
+		fprintf(stderr, "  |float       |       4 |     %2i |\n", (int)sizeof(float));
+		fprintf(stderr, "  |double      |       8 |     %2i |\n", (int)sizeof(double));
+		fprintf(stderr, "  |long double |      16 |     %2i |\n", (int)sizeof(long double));
+		fprintf(stderr, "  +===============================+\n");
+		//return 7;
 	}
 
 	FILE *binLogFile, *bestposFile;
@@ -50,33 +54,39 @@ int main(int argc, char** argv)
 
 	headerDataSt headerData;
 	bestposDataSt bestposData;
+	rangeDataSt rangeData;
+	 rangeData.numObs = 0;
+	 rangeData.rangeObsBlock = NULL;
 	
 	if(argc != 2 && argc != 3){
-		fprintf(stderr, "Error, invalid number of arguments: %i\n", argc);
+		fprintf(stderr, "Error: invalid number of arguments: %i\n", argc);
 		return 1;
 	}
 
-	strcpy(binLogFileName, *(argv + 1));
+	strncpy(binLogFileName, *(argv + 1), BUFFER_SIZE);
 	if(argc == 2){ // Only log file name specified, append log type names
-		strcpy(bestposFileName, *(argv + 1));
+		strncpy(bestposFileName, *(argv + 1), BUFFER_SIZE);
 		strcpy(bestposFileName + strlen(bestposFileName) - 4, "_bestpos.csv");
 	}
 	else{
-		strcpy(bestposFileName, *(argv + 2));
+		strncpy(bestposFileName, *(argv + 2), BUFFER_SIZE);
 		strcpy(bestposFileName + strlen(bestposFileName),  "_bestpos.csv");
 	}
-
+ 
 	binLogFile = fopen(binLogFileName, "rb");
 	bestposFile = fopen(bestposFileName, "w");
 
 	logStart = ftell(binLogFile);
 	while(1){ // loop breaks when the header fails
+		#if PARSE_VERBOSE 
+		fprintf(stdout, "\nLog %i at 0x%08lX\n", logCount, logStart);
+		#endif
 		// Read the header
 		headerStatus = parseHeader(binLogFile, &headerData, logStart);
 		if( headerStatus != HEAD_GOOD )
 			break; // Failed Header indicates end of file, hopefully no seg-fault
-		
 		logCount++;
+
 		// Check the CRC
 		if( checkCrc(binLogFile, logStart, 
 		 headerData.msgLen + headerData.headLen) ){ // CRC test passes
@@ -84,15 +94,19 @@ int main(int argc, char** argv)
 			switch(headerData.msgID){
 				case BESTPOS_ID:
 					bestposCount++;
-					parseBestpos(binLogFile, &bestposData, logStart);
-
+					parseBestpos(binLogFile, &bestposData, logStart + headerData.headLen);
 					break;
+
 				case RANGE_ID:
 					rangeCount++;
+					parseRange(binLogFile, &rangeData, logStart + headerData.headLen);
+					clearRangeData(&rangeData);
 					break;
+
 				case RAWCNAVFRAME_ID:
 					rawcnavframeCount++;
 					break;
+
 				case RAWEPHEM_ID:
 					rawephemCount++;
 					break;
@@ -104,15 +118,15 @@ int main(int argc, char** argv)
 			 logCount, logStart);
 		}
 
-		/* BEGIN DEBUG */
+		//#if DEBUG
 		if(bestposCount >= 1)
 			break;
-		/* END DEBUG */
+		//#endif
 
 		// Set the log start pointer to the next log
 		logStart += headerData.headLen + headerData.msgLen + CRC_B;
 	}
-
+ 	
 	fprintf(stdout, "%s parsed with %i entries:\n", binLogFileName, logCount);
 	fprintf(stdout, "%5i BESTPOS logs\n", bestposCount);
 	if( headerStatus == HEAD_ASCII_SYNC )
@@ -125,13 +139,13 @@ int main(int argc, char** argv)
 
 int checkCrc(FILE* binLog, long int logStart, int blockSize)
 {
-	unsigned int crc = 0;
-	unsigned int refCrc = 0;
+	uint32_t crc = 0;
+	uint32_t refCrc = 0;
 	int i;
 
 	// Iterate through each byte of the current log
-	while(blockSize-- > 0){
 	fseek(binLog, logStart, SEEK_SET);
+	while(blockSize-- > 0){
 		crc ^= fgetc(binLog);
 		// Apply the CRC division to the byte just read in (LSB first)
 		for(i = 8; i > 0; i--){
@@ -143,7 +157,5 @@ int checkCrc(FILE* binLog, long int logStart, int blockSize)
 	}
 	fread(&refCrc, CRC_B, 1, binLog); // CRC stored as the last 4 bytes
 
-	fprintf(stdout, "Reference CRC:  0x%08x\n", refCrc);
-	fprintf(stdout, "Calculated CRC: 0x%08x\n", crc);
 	return crc == refCrc;
 }
