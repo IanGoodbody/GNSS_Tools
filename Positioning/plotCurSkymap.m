@@ -1,9 +1,10 @@
 addpath('../File_Processing');
 close all
 
-trackTime = 2; % plot skymap over trackTime hours
+trackTime = 1; % plot skymap over trackTime hours
 utcHour = 4; % local time zone to UTC hour conversion
-rcvrCar = [-2532493.0840, -4696709.8100, 3483154.416]; % Avalon CA
+%rcvrCar = [-2532493.0840, -4696709.8100, 3483154.416]; % Avalon CA
+rcvrCar = [506063.534, -4882262.789, 4059609.661]; % AFIT Antenna
 rcvrGeo = convCarGeo( rcvrCar );
 
 utcTime = datetime('now') + duration(utcHour, 0, 0);
