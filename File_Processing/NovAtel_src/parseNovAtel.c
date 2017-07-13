@@ -39,9 +39,10 @@ int main(int argc, char** argv)
 		//return 7;
 	}
 
-	FILE *binLogFile, *bestposFile;
+	FILE *binLogFile, *bestposFile, *rangeFile;
 	char binLogFileName[BUFFER_SIZE];
 	char bestposFileName[BUFFER_SIZE];
+	char rangeFileName[BUFFER_SIZE];
 
 	long int logStart;
 	int headerStatus;
@@ -66,15 +67,20 @@ int main(int argc, char** argv)
 	strncpy(binLogFileName, *(argv + 1), BUFFER_SIZE);
 	if(argc == 2){ // Only log file name specified, append log type names
 		strncpy(bestposFileName, *(argv + 1), BUFFER_SIZE);
-		strcpy(bestposFileName + strlen(bestposFileName) - 4, "_bestpos.csv");
+		strcpy(bestposFileName + strlen(bestposFileName) - 4, "_bestpos.dat");
+		strncpy(rangeFileName, *(argv + 1), BUFFER_SIZE);
+		strcpy(rangeFileName + strlen(rangeFileName) - 4, "_range.dat");
 	}
 	else{
 		strncpy(bestposFileName, *(argv + 2), BUFFER_SIZE);
-		strcpy(bestposFileName + strlen(bestposFileName),  "_bestpos.csv");
+		strcpy(bestposFileName + strlen(bestposFileName),  "_bestpos.dat");
+		strncpy(rangeFileName, *(argv + 2), BUFFER_SIZE);
+		strcpy(rangeFileName + strlen(rangeFileName),  "_range.dat");
 	}
  
 	binLogFile = fopen(binLogFileName, "rb");
 	bestposFile = fopen(bestposFileName, "w");
+	rangeFile = fopen(rangeFileName, "w");
 
 	logStart = ftell(binLogFile);
 	while(1){ // loop breaks when the header fails

@@ -16,6 +16,9 @@
 #define HEAD_MLEN_B 2
 #define HEAD_MLEN_O 8
 
+#define HEAD_IDLE_B 1
+#define HEAD_IDLE_O 12
+
 #define HEAD_WEEK_B 2
 #define HEAD_WEEK_O 14
 
@@ -56,6 +59,9 @@ int parseHeader(FILE* binLog, headerDataSt* headerData, long int logStart)
 	// Message Length
 	fseek(binLog, logStart+HEAD_MLEN_O, SEEK_SET);
 	fread(&headerData->msgLen, HEAD_MLEN_B, 1, binLog);
+	// Idle time
+	fseek(binLog, logStart+HEAD_IDLE_O, SEEK_SET);
+	fread(&headerData->idle, HEAD_IDLE_B, 1, binLog);
 	// Week Number
 	fseek(binLog, logStart+HEAD_WEEK_O, SEEK_SET);
 	fread(&headerData->weekNum, HEAD_WEEK_B, 1, binLog);
@@ -71,10 +77,13 @@ int parseHeader(FILE* binLog, headerDataSt* headerData, long int logStart)
 
 	#if PARSE_VERBOSE // PRINT the header output
 	fprintf(stdout, "Header Fields:\n");
-	fprintf(stdout, "  Header Length: %hhu 0x%04hhX\n", headerData->headLen, headerData->headLen);
+	fprintf(stdout, "  Header Length: %hhu 0x%04hhX\n", headerData->headLen, 
+	 headerData->headLen);
 	fprintf(stdout, "  Message ID: %hu\n", headerData->msgID);
 	fprintf(stdout, "  Message Type: 0x%hhX\n", headerData->msgType);
-	fprintf(stdout, "  Message Length: %hu 0x%04hX\n", headerData->msgLen, headerData->msgLen);
+	fprintf(stdout, "  Message Length: %hu 0x%04hX\n", headerData->msgLen, 
+	 headerData->msgLen);
+	fprintf(stdout, "  Processor Idle: %hu%%\n", (headerData->idle)/2);
 	fprintf(stdout, "  Week Number: %hu\n", headerData->weekNum);
 	fprintf(stdout, "  GPST: %u\n", headerData->gpst);
 	fprintf(stdout, "  Time Status: %hhu; %s\n", headerData->timeStat,

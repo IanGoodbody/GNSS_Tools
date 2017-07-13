@@ -18,6 +18,7 @@ typedef struct{
 	uint16_t msgID;
 	uint8_t  msgType;
 	uint16_t msgLen;
+	uint8_t  idle;
 	uint16_t weekNum;
 	uint32_t gpst; // ms
 	uint8_t  timeStat;
