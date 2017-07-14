@@ -19,6 +19,15 @@
 #define RANGE_LOCKTIME_B 4
 #define RANGE_CHANSTAT_B 4
 
+#define RANGE_GPS_ID     0
+#define RANGE_GLONASS_ID 1
+#define RANGE_SBAS_ID    2
+#define RANGE_GALILEO_ID 3
+#define RANGE_BEIDOU_ID  4
+#define RANGE_QZSS_ID    5
+#define RANGE_OTHER_ID   7
+
+
 int parseRange(FILE* binLog, rangeDataSt* dataStruct, long int bodyStart)
 {
 	// Determine the number of observations
@@ -65,7 +74,7 @@ int parseRange(FILE* binLog, rangeDataSt* dataStruct, long int bodyStart)
 		fprintf(stdout, "\nRange Fields:");
 		fprintf(stdout, " observatrion %u of %u\n", i+1, numObs);
 		fprintf(stdout, "  Signal Type: %s\n", 
-		 decodeSignalStr( (rangeObsBlock+i)->chanStat) );
+		 decodeRangeSignalStr( (rangeObsBlock+i)->chanStat) );
 		fprintf(stdout, "  PRN/slot: %hu\n", (rangeObsBlock+i)->prn);
 		fprintf(stdout, "  GLONASS Freq: %hu\n", (rangeObsBlock+i)->gloFreq);
 		fprintf(stdout, "  Pseudorange: %f\n", (rangeObsBlock+i)->psr);
@@ -99,7 +108,7 @@ void write_RANGE_GPS_essential_col(FILE* rangeFile,
 {
 	unsigned int obs;
 	for(obs = 0; obs < rangeData->numObs; obs++){
-		if( decodeSystem((rangeData->rangeObsBlock + obs)->chanStat) == 
+		if( decodeRangeSystem((rangeData->rangeObsBlock + obs)->chanStat) == 
 		 RANGE_GPS_ID ){ // Verify it is a GPS log
 			fprintf( rangeFile, "%5u %9u %2u %.15E % .15E % .6E %2.4f \
 %2u\n",
@@ -109,7 +118,7 @@ void write_RANGE_GPS_essential_col(FILE* rangeFile,
 			 (rangeData->rangeObsBlock + obs)->carrier,
 			 (rangeData->rangeObsBlock + obs)->dopp,
 			 (rangeData->rangeObsBlock + obs)->cn0,
-			 decodeSignal((rangeData->rangeObsBlock + obs)->chanStat) );
+			 decodeRangeSignal((rangeData->rangeObsBlock + obs)->chanStat) );
 		}
 	} 
 }
@@ -119,7 +128,7 @@ void write_RANGE_GPS_essential_csv(FILE* rangeFile,
 {
 	unsigned int obs;
 	for(obs = 0; obs < rangeData->numObs; obs++){
-		if( decodeSystem((rangeData->rangeObsBlock + obs)->chanStat) == 
+		if( decodeRangeSystem((rangeData->rangeObsBlock + obs)->chanStat) == 
 		 RANGE_GPS_ID ){ // Verify it is a GPS log
 			fprintf( rangeFile, "%u,%u,%u,%.15E,%.15E,%.6E,%g,%u\n",
 			 headerData->weekNum, headerData->gpst, 
@@ -128,27 +137,16 @@ void write_RANGE_GPS_essential_csv(FILE* rangeFile,
 			 (rangeData->rangeObsBlock + obs)->carrier,
 			 (rangeData->rangeObsBlock + obs)->dopp,
 			 (rangeData->rangeObsBlock + obs)->cn0,
-			 decodeSignal((rangeData->rangeObsBlock + obs)->chanStat) );
+			 decodeRangeSignal((rangeData->rangeObsBlock + obs)->chanStat) );
 		}
 	} 
 }
 
-uint32_t decodeSystem(uint32_t chanStat)
+const char* decodeRangeSignalStr(uint32_t chanStat)
 {
-	return (chanStat & 0x00070000) >> 16;
-}
-
-uint32_t decodeSignal(uint32_t chanStat)
-{
-	return (chanStat & 0x03E00000) >> 21;
-}
-
-const char* decodeSignalStr(uint32_t chanStat)
-{
-	uint32_t sigType = (chanStat & 0x03E00000) >> 21;
-	switch((chanStat & 0x00070000) >> 16){
+	switch( decodeRangeSystem(chanStat) ){
 		case RANGE_GPS_ID:
-			switch(sigType){
+			switch( decodeRangeSignal(chanStat) ){
 				case 0:
 					return "GPS L1C/A";
 				case 5:
@@ -163,7 +161,7 @@ const char* decodeSignalStr(uint32_t chanStat)
 					return "Undocumented GPS Signal";
 				}
 		case RANGE_GLONASS_ID:
-			switch(sigType){
+			switch( decodeRangeSignal(chanStat) ){
 				case 0:
 					return "GLONASS L1C/A";
 				case 1:
@@ -174,7 +172,7 @@ const char* decodeSignalStr(uint32_t chanStat)
 					return "Undocumented GLONASS Signal";
 			}
 		case RANGE_SBAS_ID:
-			switch(sigType){
+			switch( decodeRangeSignal(chanStat) ){
 				case 0:
 					return "SBAS L1C/A";
 				case 6:
@@ -183,7 +181,7 @@ const char* decodeSignalStr(uint32_t chanStat)
 					return "Undocumentd SBAS Signal";
 			}
 		case RANGE_GALILEO_ID:
-			switch(sigType){
+			switch( decodeRangeSignal(chanStat) ){
 				case 2:
 					return "Galileo E1C";
 				case 12:
@@ -196,7 +194,7 @@ const char* decodeSignalStr(uint32_t chanStat)
 					return "Undocumented Galileo Signal";
 			}
 		case RANGE_BEIDOU_ID:
-			switch(sigType){
+			switch( decodeRangeSignal(chanStat) ){
 				case 0:
 					return "BeiDou B1 with D1 data";
 				case 1:
@@ -209,7 +207,7 @@ const char* decodeSignalStr(uint32_t chanStat)
 					return "Undocumented BeiDou Signal";
 			}
 		case RANGE_QZSS_ID:
-			switch(sigType){
+			switch( decodeRangeSignal(chanStat) ){
 				case 0:
 					return "QZSS L1C/A";
 				case 14:

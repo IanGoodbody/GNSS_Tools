@@ -61,14 +61,6 @@ void write_BESTPOS_GPS_essential_csv(FILE*, headerDataSt*, bestposDataSt*);
 #define RANGE_ID 43
 #define RANGE_MALLOC_FAIL -1
 
-#define RANGE_GPS_ID     0
-#define RANGE_GLONASS_ID 1
-#define RANGE_SBAS_ID    2
-#define RANGE_GALILEO_ID 3
-#define RANGE_BEIDOU_ID  4
-#define RANGE_QZSS_ID    5
-#define RANGE_OTHER_ID   7
-
 // Each range log has a separate elment for each observation
 typedef struct{
 	uint16_t prn;
@@ -91,9 +83,9 @@ typedef struct{
 
 int parseRange(FILE* binLog, rangeDataSt* dataStruct, long int bodyStart);
 int clearRangeData(rangeDataSt* dataStruct);
-uint32_t decodeSystem(uint32_t chanStat);
-uint32_t decodeSignal(uint32_t chanStat);
-const char* decodeSignalStr(uint32_t chanStat);
+#define decodeRangeSystem(chanStat) (chanStat & 0x00070000) >> 16
+#define decodeRangeSignal(chanStat) (chanStat & 0x03E00000) >> 21
+const char* decodeRangeSignalStr(uint32_t chanStat);
 
 void write_RANGE_GPS_essential_col(FILE*, headerDataSt*, rangeDataSt*);
 void write_RANGE_GPS_essential_csv(FILE*, headerDataSt*, rangeDataSt*);
