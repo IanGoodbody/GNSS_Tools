@@ -29,7 +29,9 @@ int parseHeader(FILE* binFile, headerDataSt* headerData, long int logStart);
 void indicateRcvrStatus(headerDataSt* headerData);
 const char* decodeTimeStatus(uint8_t timeStat);
 
-// BESTPOS: Best LLH Position
+/* 
+ * BESTPOS: Best LLH Position 
+ */
 #define BESTPOS_ID 42
 
 typedef struct{
@@ -50,7 +52,12 @@ int parseBestpos(FILE* binFile, bestposDataSt* dataStruct, long int bodyStart);
 const char* decodePosType(uint32_t posType);
 const char* decodeSolnStatus(uint32_t posType);
 
-// RANGE: "raw" gnss measurements (code, carrier, CN0)
+void write_BESTPOS_GPS_essential_col(FILE*, headerDataSt*, bestposDataSt*);
+void write_BESTPOS_GPS_essential_csv(FILE*, headerDataSt*, bestposDataSt*);
+
+/* 
+ * RANGE: "raw" gnss measurements (code, carrier, CN0)
+ */
 #define RANGE_ID 43
 #define RANGE_MALLOC_FAIL -1
 
@@ -88,9 +95,16 @@ uint32_t decodeSystem(uint32_t chanStat);
 uint32_t decodeSignal(uint32_t chanStat);
 const char* decodeSignalStr(uint32_t chanStat);
 
-// RAWEPHEM: GPS ephemeris data
+void write_RANGE_GPS_essential_col(FILE*, headerDataSt*, rangeDataSt*);
+void write_RANGE_GPS_essential_csv(FILE*, headerDataSt*, rangeDataSt*);
+
+/* 
+ * RAWEPHEM: GPS ephemeris data
+ */
 #define RAWEPHEM_ID 41
 
-// RAWCNAVFRAME: raw CNAV Frame data
+/* 
+ * RAWCNAVFRAME: raw CNAV Frame data
+ */
 #define RAWCNAVFRAME_ID 1066
 #endif

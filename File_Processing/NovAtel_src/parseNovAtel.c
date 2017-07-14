@@ -5,76 +5,63 @@
 #include "parseNovAtel.h"
 
 #define BUFFER_SIZE 512
-#define DEBUG 1
 
 #define CRC_B 4
 #define CRC_POLY 0xEDB88320
 
 int main(int argc, char** argv)
 {
-	// Check all the data type sizes and make sure you didn't screw yourself
-	int sizeMatch = 1; 
-	sizeMatch = sizeMatch && (sizeof( unsigned char) ==  1);
-	sizeMatch = sizeMatch && (sizeof(unsigned short) ==  2);
-	sizeMatch = sizeMatch && (sizeof(  unsigned int) ==  4);
-	sizeMatch = sizeMatch && (sizeof( unsigned long) ==  8);
-	sizeMatch = sizeMatch && (sizeof(         float) ==  4);
-	sizeMatch = sizeMatch && (sizeof(        double) ==  8);
-	sizeMatch = sizeMatch && (sizeof(   long double) == 16);
-	if(!sizeMatch){
-		fprintf(stderr, "WARNING: Native floating point data types sizes do not match assumed sizes!\n");
-		fprintf(stderr, "  Integer types are specified with <inttypes.h> but may causes warnings for\n  printf outputs\n");
-		fprintf(stderr, "  +===============================+\n");
-		fprintf(stderr, "  |Data Type   | Assumed | Native |\n");
-		fprintf(stderr, "  |------------+---------+--------|\n");
-		fprintf(stderr, "  |char        |       1 |     %2i |\n", (int)sizeof(unsigned char));
-		fprintf(stderr, "  |short int   |       2 |     %2i |\n", (int)sizeof(unsigned short));
-		fprintf(stderr, "  |int         |       4 |     %2i |\n", (int)sizeof(unsigned int));
-		fprintf(stderr, "  |long int    |       8 |     %2i |\n", (int)sizeof(unsigned long));
-		fprintf(stderr, "  |------------+---------+--------|\n");
-		fprintf(stderr, "  |float       |       4 |     %2i |\n", (int)sizeof(float));
-		fprintf(stderr, "  |double      |       8 |     %2i |\n", (int)sizeof(double));
-		fprintf(stderr, "  |long double |      16 |     %2i |\n", (int)sizeof(long double));
-		fprintf(stderr, "  +===============================+\n");
-		//return 7;
-	}
-
 	FILE *binLogFile, *bestposFile, *rangeFile;
 	char binLogFileName[BUFFER_SIZE];
 	char bestposFileName[BUFFER_SIZE];
 	char rangeFileName[BUFFER_SIZE];
 
 	long int logStart;
-	int headerStatus;
-
 	int logCount = 0;
-	int bestposCount = 0;
-	int rangeCount = 0;
-	int rawephemCount = 0;
-	int rawcnavframeCount = 0;
-
+	int headerStatus;
 	headerDataSt headerData;
+
+	int bestposCount = 0;
 	bestposDataSt bestposData;
+	void (*bestposWriter)(FILE*, headerDataSt*, bestposDataSt*);
+
+	int rangeCount = 0;
 	rangeDataSt rangeData;
 	 rangeData.numObs = 0;
 	 rangeData.rangeObsBlock = NULL;
-	
-	if(argc != 2 && argc != 3){
+	void (*rangeWriter)(FILE*, headerDataSt*, rangeDataSt*);
+
+	int rawephemCount = 0;
+	int rawcnavframeCount = 0;
+
+	if(argc != 3 && argc != 4){
 		fprintf(stderr, "Error: invalid number of arguments: %i\n", argc);
 		return 1;
 	}
 
-	strncpy(binLogFileName, *(argv + 1), BUFFER_SIZE);
-	if(argc == 2){ // Only log file name specified, append log type names
-		strncpy(bestposFileName, *(argv + 1), BUFFER_SIZE);
+	// Set the output type
+	if( strcmp(*(argv+1), "csv") == 0 ){
+		fprintf(stdout, "Writing .dat files in csv format\n");
+		bestposWriter = &write_BESTPOS_GPS_essential_csv;
+		rangeWriter = &write_RANGE_GPS_essential_csv;
+	}
+	else{
+		fprintf(stdout, "Writing .dat files in column format\n");
+		bestposWriter = &write_BESTPOS_GPS_essential_col;
+		rangeWriter = &write_RANGE_GPS_essential_col;
+	}
+
+	strncpy(binLogFileName, *(argv + 2), BUFFER_SIZE);
+	if(argc == 3){ // Only log file name specified, append log type names
+		strncpy(bestposFileName, *(argv + 2), BUFFER_SIZE);
 		strcpy(bestposFileName + strlen(bestposFileName) - 4, "_bestpos.dat");
-		strncpy(rangeFileName, *(argv + 1), BUFFER_SIZE);
+		strncpy(rangeFileName, *(argv + 2), BUFFER_SIZE);
 		strcpy(rangeFileName + strlen(rangeFileName) - 4, "_range.dat");
 	}
 	else{
-		strncpy(bestposFileName, *(argv + 2), BUFFER_SIZE);
+		strncpy(bestposFileName, *(argv + 3), BUFFER_SIZE);
 		strcpy(bestposFileName + strlen(bestposFileName),  "_bestpos.dat");
-		strncpy(rangeFileName, *(argv + 2), BUFFER_SIZE);
+		strncpy(rangeFileName, *(argv + 3), BUFFER_SIZE);
 		strcpy(rangeFileName + strlen(rangeFileName),  "_range.dat");
 	}
  
@@ -101,32 +88,13 @@ int main(int argc, char** argv)
 				case BESTPOS_ID:
 					bestposCount++;
 					parseBestpos(binLogFile, &bestposData, logStart + headerData.headLen);
-					fprintf( bestposFile, "%5u %10u % .15E % .15E % .15E %2hhu\n",
-					 headerData.weekNum, headerData.gpst,
-					 bestposData.lat,
-					 bestposData.lon,
-					 bestposData.height,
-					 bestposData.solnSv );
+					(*bestposWriter)(bestposFile, &headerData, &bestposData);
 					break;
 
 				case RANGE_ID:
 					rangeCount++;
 					parseRange(binLogFile, &rangeData, logStart + headerData.headLen);
-					unsigned int obs;
-					for(obs = 0; obs < rangeData.numObs; obs++){
-						if( decodeSystem((rangeData.rangeObsBlock + obs)->chanStat) == 
-						 RANGE_GPS_ID ){ // Verify it is a GPS log
-							fprintf( rangeFile, "%5u %9u %2u %.15E % .15E % .6E %2.4f \
-%2u\n",
-							 headerData.weekNum, headerData.gpst, 
-							 (rangeData.rangeObsBlock + obs)->prn,
-							 (rangeData.rangeObsBlock + obs)->psr,
-							 (rangeData.rangeObsBlock + obs)->carrier,
-							 (rangeData.rangeObsBlock + obs)->dopp,
-							 (rangeData.rangeObsBlock + obs)->cn0,
-							 decodeSignal((rangeData.rangeObsBlock + obs)->chanStat) );
-						}
-					} 
+					(*rangeWriter)(rangeFile, &headerData, &rangeData);
 					clearRangeData(&rangeData);
 					break;
 

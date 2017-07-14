@@ -5,7 +5,7 @@ default : parseNovAtel.o header.o bestpos.o range.o
 test : parseNovAtel.o header.o bestpos.o range.o
 	gcc -o parseNovAtel parseNovAtel.o header.o bestpos.o range.o
 	chmod +x parseNovAtel
-	./parseNovAtel testLog.gps
+	./parseNovAtel col testLog.gps
 
 parseNovAtel.o : parseNovAtel.h parseNovAtel.c
 	gcc -c parseNovAtel.c

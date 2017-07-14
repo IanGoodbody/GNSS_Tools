@@ -94,6 +94,45 @@ int clearRangeData(rangeDataSt* dataStruct){
 	return numObs;
 }
 
+void write_RANGE_GPS_essential_col(FILE* rangeFile, 
+ headerDataSt* headerData, rangeDataSt* rangeData)
+{
+	unsigned int obs;
+	for(obs = 0; obs < rangeData->numObs; obs++){
+		if( decodeSystem((rangeData->rangeObsBlock + obs)->chanStat) == 
+		 RANGE_GPS_ID ){ // Verify it is a GPS log
+			fprintf( rangeFile, "%5u %9u %2u %.15E % .15E % .6E %2.4f \
+%2u\n",
+			 headerData->weekNum, headerData->gpst, 
+			 (rangeData->rangeObsBlock + obs)->prn,
+			 (rangeData->rangeObsBlock + obs)->psr,
+			 (rangeData->rangeObsBlock + obs)->carrier,
+			 (rangeData->rangeObsBlock + obs)->dopp,
+			 (rangeData->rangeObsBlock + obs)->cn0,
+			 decodeSignal((rangeData->rangeObsBlock + obs)->chanStat) );
+		}
+	} 
+}
+
+void write_RANGE_GPS_essential_csv(FILE* rangeFile, 
+ headerDataSt* headerData, rangeDataSt* rangeData)
+{
+	unsigned int obs;
+	for(obs = 0; obs < rangeData->numObs; obs++){
+		if( decodeSystem((rangeData->rangeObsBlock + obs)->chanStat) == 
+		 RANGE_GPS_ID ){ // Verify it is a GPS log
+			fprintf( rangeFile, "%u,%u,%u,%.15E,%.15E,%.6E,%g,%u\n",
+			 headerData->weekNum, headerData->gpst, 
+			 (rangeData->rangeObsBlock + obs)->prn,
+			 (rangeData->rangeObsBlock + obs)->psr,
+			 (rangeData->rangeObsBlock + obs)->carrier,
+			 (rangeData->rangeObsBlock + obs)->dopp,
+			 (rangeData->rangeObsBlock + obs)->cn0,
+			 decodeSignal((rangeData->rangeObsBlock + obs)->chanStat) );
+		}
+	} 
+}
+
 uint32_t decodeSystem(uint32_t chanStat)
 {
 	return (chanStat & 0x00070000) >> 16;

@@ -95,6 +95,29 @@ int parseBestpos(FILE* binLog, bestposDataSt* dataStruct, long int bodyStart)
 	#endif
 }
 
+
+void write_BESTPOS_GPS_essential_col(FILE* bestposFile, 
+ headerDataSt* headerData, bestposDataSt* bestposData)
+{
+	fprintf( bestposFile, "%5u %10u % .15E % .15E % .15E %2hhu\n",
+	 headerData->weekNum, headerData->gpst,
+	 bestposData->lat,
+	 bestposData->lon,
+	 bestposData->height,
+	 bestposData->solnSv );
+}
+
+void write_BESTPOS_GPS_essential_csv(FILE* bestposFile, 
+ headerDataSt* headerData, bestposDataSt* bestposData)
+{
+	fprintf( bestposFile, "%u,%u,%.15E,%.15E,%.15E,%hhu\n",
+	 headerData->weekNum, headerData->gpst,
+	 bestposData->lat,
+	 bestposData->lon,
+	 bestposData->height,
+	 bestposData->solnSv );
+}
+
 const char* decodeSolnStatus(uint32_t solStat)
 {
 	switch(solStat){
