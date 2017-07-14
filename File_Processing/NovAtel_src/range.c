@@ -65,7 +65,7 @@ int parseRange(FILE* binLog, rangeDataSt* dataStruct, long int bodyStart)
 		fprintf(stdout, "\nRange Fields:");
 		fprintf(stdout, " observatrion %u of %u\n", i+1, numObs);
 		fprintf(stdout, "  Signal Type: %s\n", 
-		 decodeSignalType( (rangeObsBlock+i)->chanStat) );
+		 decodeSignalStr( (rangeObsBlock+i)->chanStat) );
 		fprintf(stdout, "  PRN/slot: %hu\n", (rangeObsBlock+i)->prn);
 		fprintf(stdout, "  GLONASS Freq: %hu\n", (rangeObsBlock+i)->gloFreq);
 		fprintf(stdout, "  Pseudorange: %f\n", (rangeObsBlock+i)->psr);
@@ -99,7 +99,12 @@ uint32_t decodeSystem(uint32_t chanStat)
 	return (chanStat & 0x00070000) >> 16;
 }
 
-const char* decodeSignalType(uint32_t chanStat)
+uint32_t decodeSignal(uint32_t chanStat)
+{
+	return (chanStat & 0x03E00000) >> 21;
+}
+
+const char* decodeSignalStr(uint32_t chanStat)
 {
 	uint32_t sigType = (chanStat & 0x03E00000) >> 21;
 	switch((chanStat & 0x00070000) >> 16){

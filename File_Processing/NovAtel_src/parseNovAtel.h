@@ -3,7 +3,7 @@
 
 #include <inttypes.h>
 
-#define PARSE_VERBOSE 1 // All parsed data is written to stdout
+#define PARSE_VERBOSE 0 // All parsed data is written to stdout
 
 int checkCrc(FILE* binFile, long int logStart, int blockSize);
 
@@ -85,7 +85,8 @@ typedef struct{
 int parseRange(FILE* binLog, rangeDataSt* dataStruct, long int bodyStart);
 int clearRangeData(rangeDataSt* dataStruct);
 uint32_t decodeSystem(uint32_t chanStat);
-const char* decodeSignalType(uint32_t chanStat);
+uint32_t decodeSignal(uint32_t chanStat);
+const char* decodeSignalStr(uint32_t chanStat);
 
 // RAWEPHEM: GPS ephemeris data
 #define RAWEPHEM_ID 41

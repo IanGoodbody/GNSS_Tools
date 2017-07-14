@@ -101,11 +101,32 @@ int main(int argc, char** argv)
 				case BESTPOS_ID:
 					bestposCount++;
 					parseBestpos(binLogFile, &bestposData, logStart + headerData.headLen);
+					fprintf( bestposFile, "%5u %10u % .15E % .15E % .15E %2hhu\n",
+					 headerData.weekNum, headerData.gpst,
+					 bestposData.lat,
+					 bestposData.lon,
+					 bestposData.height,
+					 bestposData.solnSv );
 					break;
 
 				case RANGE_ID:
 					rangeCount++;
 					parseRange(binLogFile, &rangeData, logStart + headerData.headLen);
+					unsigned int obs;
+					for(obs = 0; obs < rangeData.numObs; obs++){
+						if( decodeSystem((rangeData.rangeObsBlock + obs)->chanStat) == 
+						 RANGE_GPS_ID ){ // Verify it is a GPS log
+							fprintf( rangeFile, "%5u %9u %2u %.15E % .15E % .6E %2.4f \
+%2u\n",
+							 headerData.weekNum, headerData.gpst, 
+							 (rangeData.rangeObsBlock + obs)->prn,
+							 (rangeData.rangeObsBlock + obs)->psr,
+							 (rangeData.rangeObsBlock + obs)->carrier,
+							 (rangeData.rangeObsBlock + obs)->dopp,
+							 (rangeData.rangeObsBlock + obs)->cn0,
+							 decodeSignal((rangeData.rangeObsBlock + obs)->chanStat) );
+						}
+					} 
 					clearRangeData(&rangeData);
 					break;
 
@@ -124,10 +145,10 @@ int main(int argc, char** argv)
 			 logCount, logStart);
 		}
 
-		//#if DEBUG
-		if(bestposCount >= 1)
+		#if 0
+		if(bestposCount >= 3)
 			break;
-		//#endif
+		#endif
 
 		// Set the log start pointer to the next log
 		logStart += headerData.headLen + headerData.msgLen + CRC_B;
@@ -135,6 +156,7 @@ int main(int argc, char** argv)
  	
 	fprintf(stdout, "%s parsed with %i entries:\n", binLogFileName, logCount);
 	fprintf(stdout, "%5i BESTPOS logs\n", bestposCount);
+	fprintf(stdout, "%5i RANGE logs\n", rangeCount);
 	if( headerStatus == HEAD_ASCII_SYNC )
 		fprintf(stdout, "Tracking terminated by an ASCII style header, check log type\n");
 
