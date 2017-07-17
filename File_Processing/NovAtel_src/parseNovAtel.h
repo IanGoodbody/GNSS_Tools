@@ -99,4 +99,39 @@ void write_RANGE_GPS_essential_csv(FILE*, headerDataSt*, rangeDataSt*);
  * RAWCNAVFRAME: raw CNAV Frame data
  */
 #define RAWCNAVFRAME_ID 1066
+
+typedef struct{
+	uint16_t prn;
+	uint16_t frameID;
+	uint16_t weekNum;
+	uint8_t health;
+	double Toe
+	double A;
+	double ADot;
+	double dN;
+	double dNDot;
+	double M0;
+	double e;
+	double omega;
+	double Omega0;
+	double OmegaDot;
+	double i;
+	double iDot;
+	double Cis;
+	double Cic;
+	double Crs;
+	double Crc;
+	double Cus;
+	double Cuc;
+	double Tgd;
+	double iscL1CA;
+	double iscL2C;
+	double iscL5I;
+	double iscL5Q;
+	double Toc;
+	double A0;
+	double A1;
+	double A2;
+} rawcnavframeDataSt;
+
 #endif

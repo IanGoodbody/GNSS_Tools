@@ -18,7 +18,7 @@ satellites from the IGS repository at
 - **loadEphemeris.m** loads ephemeris data from a specified RINEX nav file
 - **RinexObsToCSV.py** standalone python script that parses a RINEX 
 observation file into a CSV with user-specified fields
-- **NovAtel\_Src** This directory holds C files that can parse NovAtel binary
+- **NovAtel\_src** This directory holds C files that can parse NovAtel binary
 .gps files to extract BESTPOS and RANGE logs.  Eventually these can be built
 as .mex files that can be called from matlab, but the C version is now
 functional and can parse the data into colum or csv formats.  I haven't written
