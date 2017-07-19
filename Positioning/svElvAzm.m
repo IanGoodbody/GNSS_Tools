@@ -1,6 +1,6 @@
 function [elevation, azmuth] = svElvAzm(svPos, rcvrPos, rcvrLat, rcvrLon);
-% SVELEVATION Calculates the elevation of sattelites with respect to the horizon
-%   [elevation, azmuth] = SVELEVATION(svPos, rcvrPos, rcvrLat, rcvrLon);
+% SVELVAZM Calculates the elevation of sattelites with respect to the horizon
+%   [elevation, azmuth] = SVELVAZM(svPos, rcvrPos, rcvrLat, rcvrLon);
 %
 % Paramters:
 %   svPos   : Nx3 array of N satellite's Cartesian positions (m)

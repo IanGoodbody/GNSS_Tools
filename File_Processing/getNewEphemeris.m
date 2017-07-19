@@ -70,17 +70,11 @@ function [ephTags, ephData, utcOffset] = getNewEphemeris(logDateUTC)
 	fileID = fopen(ephFile, 'r');
 	% Find start of data
 	line = fgetl(fileID);
-	while length(line) < 80
-		line = strcat(line, ' ');
-	end
 	while ~strncmp(line(61:end), 'END OF HEADER', 13)
 		if strncmp(line(61:end), 'LEAP SECONDS', 12)
 			utcOffset = str2num(line(1:6));
 		end
 		line = fgetl(fileID);
-		while length(line) < 80
-			line = strcat(line, ' ');
-		end
 	end
 	dataStart = ftell(fileID);
 	% Scan though and count the lines to determine the number of records
@@ -156,6 +150,6 @@ function [ephTags, ephData, utcOffset] = getNewEphemeris(logDateUTC)
 	end % Ephemeris record for
 	fclose(fileID);
 	delete(ephFile);
-	save(strcat(ephFile, '.mat'), 'ephData');
+	save(strcat(ephFile, '.mat'), 'ephData', 'utcOffset');
 	fprintf('%s.mat parsed and saved.\n', ephFile);
 end % function
