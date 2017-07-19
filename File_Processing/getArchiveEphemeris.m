@@ -43,6 +43,7 @@ function [ephTags, ephData, utcOffset] = getArchiveEphemeris(logDateUTC)
 	ephTags.GPST_h   = 28; % hr
 	ephTags.GPST_mi  = 29; % minute
 	ephTags.GPST_s   = 30; % s
+	ephTags.valid    = 31; % s
 
 	year2D = logDateUTC.Year-2000;
 	if year2D < 0
@@ -150,6 +151,8 @@ function [ephTags, ephData, utcOffset] = getArchiveEphemeris(logDateUTC)
 			% Line 8: parameters
 			line = fgetl(fileID);
 			ephData(record, ephTags.fit) = str2num(line(23:41));
+			% No line just auxillary
+			ephData(record, ephTags.valid) = 1;
 		end % Ephemeris record for
 		fclose(fileID);
 		delete(ephFile);

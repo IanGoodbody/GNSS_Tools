@@ -98,4 +98,9 @@ function [svPos, clkErr] = getSvPos(prn, transTime, rcvrPos, ...
 	 svEph(:, ephTags.e).*svEph(:, ephTags.sqrtA).*sin(E); % (s)
 	clkErr = svEph(:, ephTags.A0) + svEph(:, ephTags.A1).*delta_t + ...
 	 svEph(:, ephTags.A0).*delta_t.^2 + delta_t_r;
+	
+	for invalidInd = find( eph(:, ephTags.valid) == 0 )'
+		svPos(invalidInd, :) = [NaN, NaN, NaN];
+		clkErr(invalidInd) = NaN;
+	end
 end %function

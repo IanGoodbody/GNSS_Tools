@@ -1,7 +1,7 @@
 function [ephTags, ephData, utcOffset] = loadEphemeris(rinexNavFile)
 % LOADEPHEMERIS parses a rinex navigation file (with extension .YYn) into an 
 % Nx30 array of ephemeris parmeters indexed by the fields in the ephTags struc.
-%  [ephTags, ephData, utcOffset] =  LADEPHEMERIS(rinexNavFile)
+%  [ephTags, ephData, utcOffset] =  LOADEPHEMERIS(rinexNavFile)
 %
 % This funciton returns the entire ephemeris set contained in the file into 
 % a single array so other programs are resonsible for extracting the relevent
@@ -46,6 +46,7 @@ function [ephTags, ephData, utcOffset] = loadEphemeris(rinexNavFile)
 	ephTags.GPST_h   = 28; % hr
 	ephTags.GPST_mi  = 29; % minute
 	ephTags.GPST_s   = 30; % s
+	ephTags.valid    = 31; % s
 
 	if exist(strcat(rinexNavFile, '.mat'), 'file')
 		load(strcat(rinexNavFile, '.mat'));
@@ -136,6 +137,8 @@ function [ephTags, ephData, utcOffset] = loadEphemeris(rinexNavFile)
 			else
 				ephData(record, ephTags.fit) = 0; 
 			end
+			% No line just auxillary
+			ephData(record, ephTags.valid) = 1;
 		end % Ephemeris record for
 		fclose(fileID);
 		%delete(ephFile);
