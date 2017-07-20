@@ -1,6 +1,6 @@
 function [ephTags, ephData, utcOffset] = getNewEphemeris(logDateUTC)
 % GETNEWEPHEMERIS retrieves the most up-to-date broadcast ephemeris for all 
-% SVs on the provided date from the IGS repository at cddis.gfsc.nasa.gov.
+% SVs on the provided date from the IGS repository at cddis.gsfc.nasa.gov.
 % The broadcast ephemeris for the current day is updated hourly.
 %  [ephTags, ephData, utcOffset] = GETNEWEPHEMERIS(logDateUTC)
 %
@@ -144,12 +144,11 @@ function [ephTags, ephData, utcOffset] = getNewEphemeris(logDateUTC)
 		ephData(record, ephTags.week) = str2num(line(42:60));
 		% Line 7: parameters
 		line = fgetl(fileID);
+		ephData(record, ephTags.valid) = str2num(line(23:41)==0);
 		ephData(record, ephTags.Tgd) = str2num(line(42:60));
 		% Line 8: parameters
 		line = fgetl(fileID);
 		ephData(record, ephTags.fit) = str2num(line(23:41));
-		% No line just auxillary
-		ephData(record, ephTags.valid) = 1;
 	end % Ephemeris record for
 	fclose(fileID);
 	delete(ephFile);

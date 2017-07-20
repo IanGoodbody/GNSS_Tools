@@ -147,12 +147,12 @@ function [ephTags, ephData, utcOffset] = getArchiveEphemeris(logDateUTC)
 			ephData(record, ephTags.week) = str2num(line(42:60));
 			% Line 7: parameters
 			line = fgetl(fileID);
-			ephData(record, ephTags.Tgd) = str2num(line(42:60));
+			ephData(record, ephTags.valid) = str2num(line(23:41)==0);
+			ephData(record, ephTags.Tgd)   = str2num(line(42:60));
 			% Line 8: parameters
 			line = fgetl(fileID);
 			ephData(record, ephTags.fit) = str2num(line(23:41));
 			% No line just auxillary
-			ephData(record, ephTags.valid) = 1;
 		end % Ephemeris record for
 		fclose(fileID);
 		delete(ephFile);
