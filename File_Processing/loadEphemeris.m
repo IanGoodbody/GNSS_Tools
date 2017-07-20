@@ -129,7 +129,7 @@ function [ephTags, ephData, utcOffset] = loadEphemeris(rinexNavFile)
 			ephData(record, ephTags.week) = str2num(line(42:60));
 			% Line 7: parameters
 			line = fgetl(fileID);
-			ephData(record, ephTags.valid) = str2num(line(23:41)==0);
+			ephData(record, ephTags.valid) = str2num(line(23:41))==0;
 			ephData(record, ephTags.Tgd) = str2num(line(42:60));
 			% Line 8: parameters
 			line = fgetl(fileID);
