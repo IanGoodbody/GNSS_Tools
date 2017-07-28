@@ -1,8 +1,8 @@
-function [ephTags, ephData, utcOffset] = getNewEphemeris(logDateUTC)
-% GETNEWEPHEMERIS retrieves the most up-to-date broadcast ephemeris for all 
+function [ephTags, ephData, utcOffset] = getNewEphemeris_GPS(logDateUTC)
+% GETNEWEPHEMERIS_GPS retrieves the most up-to-date broadcast ephemeris for all 
 % SVs on the provided date from the IGS repository at cddis.gsfc.nasa.gov.
 % The broadcast ephemeris for the current day is updated hourly.
-%  [ephTags, ephData, utcOffset] = GETNEWEPHEMERIS(logDateUTC)
+%  [ephTags, ephData, utcOffset] = GETNEWEPHEMERIS_GPS(logDateUTC)
 %
 % Parameters
 %   logDateUTC : a matlab datetime() object specifying the UTC date for the 
