@@ -2,12 +2,13 @@ addpath('../File_Processing');
 close all
 
 trackTime = 1; % plot skymap over trackTime hours
-utcHour = 4; % local time zone to UTC hour conversion
+utcHour = 7; % local time zone to UTC hour conversion
 rcvrCar = [-2532493.0840, -4696709.8100, 3483154.416]; % Avalon CA
 rcvrGeo = convCarGeo( rcvrCar );
+location = 'CAT2 Avalon, CA';
 
 utcTime = datetime('now') + duration(utcHour, 0, 0);
-[tags, ephAll, gpstOffset] = getNewEphemeris( utcTime );
+[tags, ephAll, gpstOffset] = getNewEphemeris_GPS( utcTime );
 prns = unique( ephAll(:, tags.PRN) );
 ephNewest = sortrows( ephAll, tags.Toe, 'descend' );
 
@@ -45,16 +46,14 @@ for prnIndex = 1:length(prns)
 	visPoints = find( zeniths(prnIndex, :) < pi/2 );
 	if length(visPoints) > 0
 		polarscatter( azmuths(prnIndex, visPoints(1)), ...
-		 180/pi*zeniths(prnIndex, visPoints(1)), 'filled', 'sk', ...
-		 'DisplayName', '');
+		 180/pi*zeniths(prnIndex, visPoints(1)), 'filled', 'sk' )
 		polarplot( azmuths(prnIndex, visPoints), ...
-		 180/pi*zeniths(prnIndex, visPoints), ...
-		 'DisplayName', sprintf('PRN %02i', prns(prnIndex)));
-%		text( azmuths(prnIndex, visPoints(1)), ...
-%		 180/pi*zeniths(prnIndex, visPoints), sprintf('G%02i', prns(prnIndex)) );
+		 180/pi*zeniths(prnIndex, visPoints) )
+		text( azmuths(prnIndex, visPoints(1)), ...
+		 180/pi*zeniths(prnIndex, visPoints(1)), sprintf('G%02i', prns(prnIndex)) );
 	end
 end
 set(gca, 'ThetaZeroLocation', 'top');
 set(gca, 'ThetaDir', 'clockwise');
-legend('show')
+title( sprintf('Skymap for %s\n%s UTC', location, utcTime) );
 hold off
