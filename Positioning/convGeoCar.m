@@ -4,7 +4,7 @@ function cordCar = convGeoCar(cordGeo)
 %   cordCar = CONVGEOCAR(corGeo)
 % 
 % Paramters:
-%	  cordGeo; Nx3 vector of geodededic coordinates 
+%	  cordGeo: Nx3 vector of geodededic coordinates 
 %            [lat (rad), lon (rad), height (m)]
 % Returns:
 %   cordCar: Nx3 vector of cartesian coordinates [x (m), y (m), z (m)]
