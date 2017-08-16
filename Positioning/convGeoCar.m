@@ -14,9 +14,9 @@ function cordCar = convGeoCar(cordGeo)
 
 	N = a./sqrt( 1-e2*sin(cordGeo(:, 1)).^2 );
 
-	x = (N + cordGeo(:, 3)) .* cos(cordGeo(:, 1))*cos(cordGeo(:, 2));
-	y = (N + cordGeo(:, 3)) .* cos(cordGeo(:, 1))*sin(cordGeo(:, 2));
-	z = (N*(1-e2) + cordGeo(:, 3)) * sin(cordGeo(:, 1));
+	x = (N + cordGeo(:, 3)) .* cos(cordGeo(:, 1)).*cos(cordGeo(:, 2));
+	y = (N + cordGeo(:, 3)) .* cos(cordGeo(:, 1)).*sin(cordGeo(:, 2));
+	z = (N*(1-e2) + cordGeo(:, 3)) .* sin(cordGeo(:, 1));
 	
 	cordCar = [x, y, z];
 end
