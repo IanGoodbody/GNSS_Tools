@@ -1,4 +1,4 @@
-function [gpsTags, gpsData, galTags, galData, gloTags, gloData, utcOffset] = ...
+function [gpsTags, gpsData, gloTags, gloData, galTags, galData, utcOffset] = ...
  getArchiveEphemeris_ALL(logDateUTC)
 % GETATCHIVEPHEMERIS_ALL retrieves the broadcast Galileo ephemeris for 
 % all SVs on the provided date from the IGS repository at cddis.gfsc.nasa.gov.
@@ -80,7 +80,7 @@ function [gpsTags, gpsData, galTags, galData, gloTags, gloData, utcOffset] = ...
 
 % Galileo Tags
 	galTags.system   =  1; % Enumerated type 3 for Galileo
-	galTags.SVID     =  2; % Unitless
+	galTags.PRN      =  2; % Unitless
 	galTags.Toe      =  3; % Seconds since the start of the week
 	galTags.week     =  4; % Week number
 	galTags.sqrtA    =  5; % m^{1/2}
@@ -154,16 +154,16 @@ function [gpsTags, gpsData, galTags, galData, gloTags, gloData, utcOffset] = ...
 		gloRecords = 0;
 		line = fgetl(fileID);
 		while line ~= -1
-			line = fgetl(fileID);
 			if line(1) == 'G'
 				gpsRecords = gpsRecords + 1;
 			elseif line(1) == 'R'
 				gloRecords = gloRecords + 1;
-			else if line(1) == 'E'
+			elseif line(1) == 'E'
 				galRecords = galRecords + 1;
 			end
+			line = fgetl(fileID);
 		end
-	
+
 		% Begin populating the fields of ephData
 		gpsData = zeros(gpsRecords, length(fieldnames(gpsTags)));
 		gloData = zeros(gloRecords, length(fieldnames(gloTags)));
@@ -291,10 +291,10 @@ function [gpsTags, gpsData, galTags, galData, gloTags, gloData, utcOffset] = ...
 					galData(galInd, galTags.Toc) = (weekday(tocDate)-1)*86400 + ...
 					 tocDate.Hour*3600 + tocDate.Minute*60 + tocDate.Second;
 	
-					galData(galInd, galTags.SVID) = str2num(line( 2: 3));
-					galData(galInd, galTags.A0)   = str2num(line(24:42));
-					galData(galInd, galTags.A1)   = str2num(line(43:61));
-					galData(galInd, galTags.A2)   = str2num(line(62:80));
+					galData(galInd, galTags.PRN) = str2num(line( 2: 3));
+					galData(galInd, galTags.A0)  = str2num(line(24:42));
+					galData(galInd, galTags.A1)  = str2num(line(43:61));
+					galData(galInd, galTags.A2)  = str2num(line(62:80));
 					% Line 2: parameters
 					line = fgetl(fileID);
 					galData(galInd, galTags.Crs)    = str2num(line(24:42));
@@ -337,6 +337,21 @@ function [gpsTags, gpsData, galTags, galData, gloTags, gloData, utcOffset] = ...
 
 				case 'S' % SBAS not implemented
 					for dummy = 1:3
+						line = fgetl(fileID);
+					end
+
+				case 'C' % BeiDou? Not implemented
+					for dummy = 1:7
+						line = fgetl(fileID);
+					end
+
+				case 'J' % QZSS? Not implemented
+					for dummy = 1:7
+						line = fgetl(fileID);
+					end
+
+				case 'I' % IRNS? Not implemented
+					for dummy = 1:7
 						line = fgetl(fileID);
 					end
 
