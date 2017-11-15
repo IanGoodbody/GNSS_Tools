@@ -8,7 +8,7 @@ rcvrCar = convGeoCar( rcvrGeo );
 location = 'Highway 128, UT';
 utcTime = datetime( 2010, 10, 10, 13, 0, 0 );
 
-[tags, ephAll, gpstOffset] = getNewEphemeris_GPS( utcTime );
+[tags, ephAll, gpstOffset] = getArchiveEphemeris_GPS( utcTime );
 prns = unique( ephAll(:, tags.PRN) );
 ephNewest = sortrows( ephAll, tags.Toe, 'descend' );
 
