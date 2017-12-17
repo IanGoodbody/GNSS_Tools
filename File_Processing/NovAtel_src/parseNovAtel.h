@@ -3,7 +3,7 @@
 
 #include <inttypes.h>
 
-#define PARSE_VERBOSE 0 // All parsed data is written to stdout
+#define PARSE_VERBOSE 1 // All parsed data is written to stdout
 
 int checkCrc(FILE* binFile, long int logStart, int blockSize);
 
@@ -49,11 +49,8 @@ typedef struct{
 }	bestposDataSt;
 
 int parseBestpos(FILE* binFile, bestposDataSt* dataStruct, long int bodyStart);
-const char* decodePosType(uint32_t posType);
-const char* decodeSolnStatus(uint32_t posType);
-
-void write_BESTPOS_GPS_essential_col(FILE*, headerDataSt*, bestposDataSt*);
-void write_BESTPOS_GPS_essential_csv(FILE*, headerDataSt*, bestposDataSt*);
+void write_bestpos_GPS_essential_col(FILE*, headerDataSt*, bestposDataSt*);
+void write_bestpos_GPS_essential_csv(FILE*, headerDataSt*, bestposDataSt*);
 
 /* 
  * RANGE: "raw" gnss measurements (code, carrier, CN0)
@@ -81,14 +78,47 @@ typedef struct{
 	rangeDataObsSt* rangeObsBlock;
 } rangeDataSt;
 
-int parseRange(FILE* binLog, rangeDataSt* dataStruct, long int bodyStart);
-int clearRangeData(rangeDataSt* dataStruct);
-#define decodeRangeSystem(chanStat) (chanStat & 0x00070000) >> 16
-#define decodeRangeSignal(chanStat) (chanStat & 0x03E00000) >> 21
-const char* decodeRangeSignalStr(uint32_t chanStat);
+int parseRange( FILE* binLog, rangeDataSt* dataStruct, long int bodyStart );
+int clearRangeData( rangeDataSt* dataStruct ); // Free the memory for a given log
 
-void write_RANGE_GPS_essential_col(FILE*, headerDataSt*, rangeDataSt*);
-void write_RANGE_GPS_essential_csv(FILE*, headerDataSt*, rangeDataSt*);
+void write_range_GPS_essential_col( FILE*, headerDataSt*, rangeDataSt* );
+void write_range_GPS_essential_csv( FILE*, headerDataSt*, rangeDataSt* );
+
+/* 
+ * TRACKSTAT: Channel tracking data
+ */
+#define TRACKSTAT_ID 83
+#define TRACKSTAT_MALLOC_FAIL -2
+
+typedef struct{
+	uint16_t prn;
+	uint16_t gloFreq;
+	uint32_t chanStat;
+	double psr; // m
+	float dopp; // Hz
+	float cn0; // dB-Hz
+	float lockTime; // s
+	float psrResidual; // m
+	uint32_t reject; 
+	float psrWeight;
+} trackstatDataObsSt;
+// This data structure referes to the muliple channel logs contained in in a 
+// single trackstat message. It wraps the number of channel opservations and the
+// list in a single data object.
+typedef struct{
+	uint32_t numObs;
+	uint32_t solStatus;
+	uint32_t posType;
+	float cutoff;
+	trackstatDataObsSt* trackstatObsBlock;
+} trackstatDataSt;
+
+int parseTrackstat(FILE* binLog, trackstatDataSt* dataStruct, 
+ long int bodyStart);
+int clearTrackstatData( trackstatDataSt* dataStruct );
+
+void write_trackstat_GPS_essential_col( FILE*, headerDataSt*, trackstatDataSt* );
+void write_trackstat_GPS_essential_csv( FILE*, headerDataSt*, trackstatDataSt* );
 
 /* 
  * RAWEPHEM: GPS ephemeris data
@@ -105,7 +135,7 @@ typedef struct{
 	uint16_t frameID;
 	uint16_t weekNum;
 	uint8_t health;
-	double Toe
+	double Toe;
 	double A;
 	double ADot;
 	double dN;

@@ -1,11 +1,11 @@
-parseNovAtel : parseNovAtel.o header.o bestpos.o range.o rawcnavframe.o
-	gcc -o parseNovAtel -Wall parseNovAtel.o header.o bestpos.o range.o
+parseNovAtel : parseNovAtel.o header.o decoderLibrary.o bestpos.o range.o  trackstat.o
+	gcc -o parseNovAtel -Wall parseNovAtel.o header.o bestpos.o range.o trackstat.o decoderlibrary.o
 	chmod +x parseNovAtel
 
-test : parseNovAtel.o header.o bestpos.o range.o rawcnavframe.o
-	gcc -o parseNovAtel parseNovAtel.o header.o bestpos.o range.o
+test : parseNovAtel.o header.o decoderLibrary.o bestpos.o range.o trackstat.o
+	gcc -o parseNovAtel parseNovAtel.o header.o decoderLibrary.o bestpos.o range.o trackstat.o
 	chmod +x parseNovAtel
-	./parseNovAtel testLog.gps > testOut.txt
+	./parseNovAtel col testLog.gps > testOut.txt
 	less testOut.txt
 
 parseNovAtel.o : parseNovAtel.h parseNovAtel.c
@@ -14,11 +14,17 @@ parseNovAtel.o : parseNovAtel.h parseNovAtel.c
 header.o : parseNovAtel.h header.c
 	gcc -c header.c
 
+decoderLibrary.o : parseNovAtel.h decoderLibrary.h decoderLibrary.c
+	gcc -c decoderLibrary.c
+
 bestpos.o : parseNovAtel.h bestpos.c
 	gcc -c bestpos.c
 
 range.o : parseNovAtel.h range.c
 	gcc -c range.c
+
+trackstat.o : parseNovAtel.h trackstat.c
+	gcc -c trackstat.c
 
 rawcnavframe.o : parseNovAtel.h rawcnavframe.c
 	echo TODO: inegrate RAWCNAVFRAME into makefile

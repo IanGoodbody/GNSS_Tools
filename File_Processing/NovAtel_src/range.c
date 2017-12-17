@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <inttypes.h>
 #include "parseNovAtel.h"
+#include "decoderLibrary.h"
 
 /* The function records all the fields in the range measurements. Because
  * reads can cascade though the log, it is faster not to seek to the 
@@ -18,15 +19,6 @@
 #define RANGE_CN0_B 4
 #define RANGE_LOCKTIME_B 4
 #define RANGE_CHANSTAT_B 4
-
-#define RANGE_GPS_ID     0
-#define RANGE_GLONASS_ID 1
-#define RANGE_SBAS_ID    2
-#define RANGE_GALILEO_ID 3
-#define RANGE_BEIDOU_ID  4
-#define RANGE_QZSS_ID    5
-#define RANGE_OTHER_ID   7
-
 
 int parseRange(FILE* binLog, rangeDataSt* dataStruct, long int bodyStart)
 {
@@ -74,7 +66,7 @@ int parseRange(FILE* binLog, rangeDataSt* dataStruct, long int bodyStart)
 		fprintf(stdout, "\nRange Fields:");
 		fprintf(stdout, " observatrion %u of %u\n", i+1, numObs);
 		fprintf(stdout, "  Signal Type: %s\n", 
-		 decodeRangeSignalStr( (rangeObsBlock+i)->chanStat) );
+		 decodeChanSignalStr( (rangeObsBlock+i)->chanStat) );
 		fprintf(stdout, "  PRN/slot: %hu\n", (rangeObsBlock+i)->prn);
 		fprintf(stdout, "  GLONASS Freq: %hu\n", (rangeObsBlock+i)->gloFreq);
 		fprintf(stdout, "  Pseudorange: %f\n", (rangeObsBlock+i)->psr);
@@ -93,23 +85,23 @@ int parseRange(FILE* binLog, rangeDataSt* dataStruct, long int bodyStart)
 	return (int)numObs;
 }
 
-int clearRangeData(rangeDataSt* dataStruct){
+int clearRangeData( rangeDataSt* dataStruct ){
 	uint32_t numObs = dataStruct->numObs;
-	if(dataStruct->rangeObsBlock != NULL){
-		free(dataStruct->rangeObsBlock);
+	if( dataStruct->rangeObsBlock != NULL ){
+		free( dataStruct->rangeObsBlock );
 		dataStruct->rangeObsBlock = NULL;
 		dataStruct->numObs = 0;
 	}
 	return numObs;
 }
 
-void write_RANGE_GPS_essential_col(FILE* rangeFile, 
- headerDataSt* headerData, rangeDataSt* rangeData)
+void write_range_GPS_essential_col( FILE* rangeFile, 
+ headerDataSt* headerData, rangeDataSt* rangeData )
 {
 	unsigned int obs;
 	for(obs = 0; obs < rangeData->numObs; obs++){
-		if( decodeRangeSystem((rangeData->rangeObsBlock + obs)->chanStat) == 
-		 RANGE_GPS_ID ){ // Verify it is a GPS log
+		if( decodeChanSystem((rangeData->rangeObsBlock + obs)->chanStat) == 
+		 CHAN_STAT_GPS_ID ){ // Verify it is a GPS log
 			fprintf( rangeFile, "%5u %9u %2u %.15E % .15E % .6E %2.4f \
 %2u\n",
 			 headerData->weekNum, headerData->gpst, 
@@ -118,18 +110,18 @@ void write_RANGE_GPS_essential_col(FILE* rangeFile,
 			 (rangeData->rangeObsBlock + obs)->carrier,
 			 (rangeData->rangeObsBlock + obs)->dopp,
 			 (rangeData->rangeObsBlock + obs)->cn0,
-			 decodeRangeSignal((rangeData->rangeObsBlock + obs)->chanStat) );
+			 decodeChanSignal((rangeData->rangeObsBlock + obs)->chanStat) );
 		}
 	} 
 }
 
-void write_RANGE_GPS_essential_csv(FILE* rangeFile, 
- headerDataSt* headerData, rangeDataSt* rangeData)
+void write_range_GPS_essential_csv( FILE* rangeFile, 
+ headerDataSt* headerData, rangeDataSt* rangeData )
 {
 	unsigned int obs;
-	for(obs = 0; obs < rangeData->numObs; obs++){
-		if( decodeRangeSystem((rangeData->rangeObsBlock + obs)->chanStat) == 
-		 RANGE_GPS_ID ){ // Verify it is a GPS log
+	for( obs = 0; obs < rangeData->numObs; obs++ ){
+		if( decodeChanSystem( (rangeData->rangeObsBlock + obs)->chanStat ) == 
+		 CHAN_STAT_GPS_ID ){ // Verify it is a GPS log
 			fprintf( rangeFile, "%u,%u,%u,%.15E,%.15E,%.6E,%g,%u\n",
 			 headerData->weekNum, headerData->gpst, 
 			 (rangeData->rangeObsBlock + obs)->prn,
@@ -137,87 +129,7 @@ void write_RANGE_GPS_essential_csv(FILE* rangeFile,
 			 (rangeData->rangeObsBlock + obs)->carrier,
 			 (rangeData->rangeObsBlock + obs)->dopp,
 			 (rangeData->rangeObsBlock + obs)->cn0,
-			 decodeRangeSignal((rangeData->rangeObsBlock + obs)->chanStat) );
+			 decodeChanSignal( (rangeData->rangeObsBlock + obs)->chanStat) );
 		}
 	} 
-}
-
-const char* decodeRangeSignalStr(uint32_t chanStat)
-{
-	switch( decodeRangeSystem(chanStat) ){
-		case RANGE_GPS_ID:
-			switch( decodeRangeSignal(chanStat) ){
-				case 0:
-					return "GPS L1C/A";
-				case 5:
-					return "GPS L2P";
-				case 9:
-					return "GPS L2P Codeless";
-				case 14:
-					return "GPS L5Q";
-				case 17:
-					return "GPS L2C";
-				default:
-					return "Undocumented GPS Signal";
-				}
-		case RANGE_GLONASS_ID:
-			switch( decodeRangeSignal(chanStat) ){
-				case 0:
-					return "GLONASS L1C/A";
-				case 1:
-					return "GLONASS L2C/A";
-				case 5:
-					return "GLONASS L2P";
-				default:
-					return "Undocumented GLONASS Signal";
-			}
-		case RANGE_SBAS_ID:
-			switch( decodeRangeSignal(chanStat) ){
-				case 0:
-					return "SBAS L1C/A";
-				case 6:
-					return "SBAS L5I";
-				default:
-					return "Undocumentd SBAS Signal";
-			}
-		case RANGE_GALILEO_ID:
-			switch( decodeRangeSignal(chanStat) ){
-				case 2:
-					return "Galileo E1C";
-				case 12:
-					return "Galileo E5a Q";
-				case 17:
-					return "Galileo E5b Q";
-				case 20:
-					return "AltBOC Q";
-				default:
-					return "Undocumented Galileo Signal";
-			}
-		case RANGE_BEIDOU_ID:
-			switch( decodeRangeSignal(chanStat) ){
-				case 0:
-					return "BeiDou B1 with D1 data";
-				case 1:
-					return "BeiDou B2 with D1 data";
-				case 4:
-					return "BeiDou B1 with D2 data";
-				case 5:
-					return "BeiDou B2 with D2 data";
-				default:
-					return "Undocumented BeiDou Signal";
-			}
-		case RANGE_QZSS_ID:
-			switch( decodeRangeSignal(chanStat) ){
-				case 0:
-					return "QZSS L1C/A";
-				case 14:
-					return "QZSS L5Q";
-				case 17:
-					return "QZSS L2C";
-				default:
-					return "Undocumented QZSS Signal";
-			}
-		default:
-			return "Unknown satellite system";
-	}
 }
