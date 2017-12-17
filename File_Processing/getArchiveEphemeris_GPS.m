@@ -1,8 +1,8 @@
-function [ephTags, ephData, utcOffset] = getArchiveEphemeris(logDateUTC)
-% GETATCHIVEPHEMERIS retrieves the most up-to-date broadcast ephemeris for all 
-% SVs on the provided date from the IGS repository at cddis.gfsc.nasa.gov.
+function [ephTags, ephData, utcOffset] = getArchiveEphemeris_GPS(logDateUTC)
+% GETATCHIVEPHEMERIS_GPS retrieves the most up-to-date broadcast ephemeris for 
+% all SVs on the provided date from the IGS repository at cddis.gfsc.nasa.gov.
 % The broadcast ephemeris for the current day is updated hourly.
-%  [ephTags, ephData, utcOffset] = GETARCHIVEEPHEMERIS(logDateUTC)
+%  [ephTags, ephData, utcOffset] = GETARCHIVEEPHEMERIS_GPS(logDateUTC)
 %
 % Parameters
 %   logDateUTC : a matlab datetime() object specifying the UTC date for the 
@@ -13,37 +13,38 @@ function [ephTags, ephData, utcOffset] = getArchiveEphemeris(logDateUTC)
 %   ephData   : Nx30 array containing all the ephemeris data in the file
 %   utcOffset : UTC time offset (s) UTC = GPST + utcOffset
 	% Define indicies for ephemeris paramters
-	ephTags.PRN      =  1; % Unitless
-	ephTags.Toe      =  2; % Seconds since the start of the week
-	ephTags.week     =  3; % Week number
-	ephTags.sqrtA    =  4; % m^{1/2}
-	ephTags.e        =  5; % Unitless
-	ephTags.i0       =  6; % rad
-	ephTags.Omega0   =  7; % rad
-	ephTags.omega    =  8; % rad
-	ephTags.M0       =  9; % rad
-	ephTags.DeltaN   = 10; % rad/s
-	ephTags.iDot     = 11; % rad/s
-	ephTags.OmegaDot = 12; % rad/s
-	ephTags.Cuc      = 13; % rad
-	ephTags.Cus      = 14; % rad
-	ephTags.Crc      = 15; % m
-	ephTags.Crs      = 16; % m
-	ephTags.Cic      = 17; % rad
-	ephTags.Cis      = 18; % rad
-	ephTags.Toc      = 19; % s
-	ephTags.A0       = 20; % s
-	ephTags.A1       = 21; % s/s
-	ephTags.A2       = 22; % s/s^2
-	ephTags.Tgd      = 23; % s
-	ephTags.fit      = 24; % hr; Ephemeris fit intereval, 0 if undknown
-	ephTags.GPST_y   = 25; % year
-	ephTags.GPST_m   = 26; % month
-	ephTags.GPST_d   = 27; % day
-	ephTags.GPST_h   = 28; % hr
-	ephTags.GPST_mi  = 29; % minute
-	ephTags.GPST_s   = 30; % s
-	ephTags.valid    = 31; % s
+	ephTags.system   =  1; % Enumerated: 1 for GPS
+	ephTags.PRN      =  2; % Unitless
+	ephTags.Toe      =  3; % Seconds since the start of the week
+	ephTags.week     =  4; % Week number
+	ephTags.sqrtA    =  5; % m^{1/2}
+	ephTags.e        =  6; % Unitless
+	ephTags.i0       =  7; % rad
+	ephTags.Omega0   =  8; % rad
+	ephTags.omega    =  9; % rad
+	ephTags.M0       = 10; % rad
+	ephTags.DeltaN   = 11; % rad/s
+	ephTags.iDot     = 12; % rad/s
+	ephTags.OmegaDot = 13; % rad/s
+	ephTags.Cuc      = 14; % rad
+	ephTags.Cus      = 15; % rad
+	ephTags.Crc      = 16; % m
+	ephTags.Crs      = 17; % m
+	ephTags.Cic      = 18; % rad
+	ephTags.Cis      = 19; % rad
+	ephTags.Toc      = 20; % s
+	ephTags.A0       = 21; % s
+	ephTags.A1       = 22; % s/s
+	ephTags.A2       = 23; % s/s^2
+	ephTags.Tgd      = 24; % s
+	ephTags.fit      = 25; % hr; Ephemeris fit intereval, 0 if undknown
+	ephTags.GPST_y   = 26; % year
+	ephTags.GPST_m   = 27; % month
+	ephTags.GPST_d   = 28; % day
+	ephTags.GPST_h   = 29; % hr
+	ephTags.GPST_mi  = 30; % minute
+	ephTags.GPST_s   = 31; % s
+	ephTags.valid    = 32; % s
 
 	year2D = logDateUTC.Year-2000;
 	if year2D < 0
@@ -92,6 +93,7 @@ function [ephTags, ephData, utcOffset] = getArchiveEphemeris(logDateUTC)
 	
 		% Begin populating the fields of ephData
 		ephData = zeros(records, length(fieldnames(ephTags)));
+		ephData(:, ephTags.system) = 1; % Set system tag to 2 -- GPS
 		fseek(fileID, dataStart, -1);
 		for record = 1:records
 			% Line 1: PRN, Toc, clock polynomial terms

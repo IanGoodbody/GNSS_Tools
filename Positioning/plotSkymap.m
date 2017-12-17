@@ -1,14 +1,14 @@
 addpath('../File_Processing');
 close all
 
-trackTime = 0.2; % plot skymap over trackTime hours
+trackTime = 0.25; % plot skymap over trackTime hours
 utcHour = 5; % local time zone to UTC hour conversion
-rcvrCar = [-2532493.0840, -4696709.8100, 3483154.416]; % Avalon CA
-rcvrGeo = convCarGeo( rcvrCar );
-location = 'CAT2 Avalon, CA';
+rcvrGeo = [-1.9080, 0.6802, 6.3781e6];
+rcvrCar = convGeoCar( rcvrGeo );
+location = 'Highway 128, UT';
+utcTime = datetime( 2010, 10, 10, 13, 0, 0 );
 
-utcTime = datetime('now') + duration(utcHour, 0, 0);
-[tags, ephAll, gpstOffset] = getNewEphemeris_GPS( utcTime );
+[tags, ephAll, gpstOffset] = getArchiveEphemeris_GPS( utcTime );
 prns = unique( ephAll(:, tags.PRN) );
 ephNewest = sortrows( ephAll, tags.Toe, 'descend' );
 
