@@ -3,7 +3,7 @@
 
 #include <inttypes.h>
 
-#define PARSE_VERBOSE 1 // All parsed data is written to stdout
+#define PARSE_VERBOSE 0 // All parsed data is written to stdout
 
 int checkCrc(FILE* binFile, long int logStart, int blockSize);
 
@@ -117,8 +117,8 @@ int parseTrackstat(FILE* binLog, trackstatDataSt* dataStruct,
  long int bodyStart);
 int clearTrackstatData( trackstatDataSt* dataStruct );
 
-void write_trackstat_GPS_essential_col( FILE*, headerDataSt*, trackstatDataSt* );
-void write_trackstat_GPS_essential_csv( FILE*, headerDataSt*, trackstatDataSt* );
+void write_trackstat_GPS_col( FILE*, headerDataSt*, trackstatDataSt* );
+void write_trackstat_GPS_csv( FILE*, headerDataSt*, trackstatDataSt* );
 
 /* 
  * RAWEPHEM: GPS ephemeris data

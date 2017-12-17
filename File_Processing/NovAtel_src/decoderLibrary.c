@@ -226,5 +226,7 @@ const char* decodeReject( uint32_t  reject )
 			return "Signal lock broken";
 		case 102: // NOAMBIGUITY
 			return "RTK ambuguity unresolved";
+		default: // Unknown
+			return "Invalid reject code";
 	}
 }

@@ -52,13 +52,13 @@ int main(int argc, char** argv)
 		fprintf(stdout, "Writing .dat files in csv format\n");
 		bestposWriter = &write_bestpos_GPS_essential_csv;
 		rangeWriter = &write_range_GPS_essential_csv;
-		trackstatWriter = &write_trackstat_GPS_essential_csv;
+		trackstatWriter = &write_trackstat_GPS_csv;
 	}
 	else{
 		fprintf(stdout, "Writing .dat files in column format\n");
 		bestposWriter = &write_bestpos_GPS_essential_col;
 		rangeWriter = &write_range_GPS_essential_col;
-		trackstatWriter = &write_trackstat_GPS_essential_col;
+		trackstatWriter = &write_trackstat_GPS_col;
 	}
 
 	strncpy( binLogFileName, *(argv + 2), BUFFER_SIZE );
@@ -68,7 +68,7 @@ int main(int argc, char** argv)
 		strncpy( rangeFileName, *(argv + 2), BUFFER_SIZE);
 		strcpy( rangeFileName + strlen(rangeFileName) - 4, "_range.dat" );
 		strncpy( trackstatFileName, *(argv + 2), BUFFER_SIZE );
-		strcpy( trackstatFileName + strlen(rangeFileName) - 4, "_trackstat.dat" );
+		strcpy( trackstatFileName + strlen(trackstatFileName) - 4, "_trackstat.dat" );
 	}
 	else{
 		strncpy( bestposFileName, *(argv + 3), BUFFER_SIZE );
@@ -76,7 +76,7 @@ int main(int argc, char** argv)
 		strncpy( rangeFileName, *(argv + 3), BUFFER_SIZE );
 		strcpy( rangeFileName + strlen(rangeFileName),  "_range.dat" );
 		strncpy( trackstatFileName, *(argv + 3), BUFFER_SIZE );
-		strcpy( trackstatFileName + strlen(rangeFileName),  "_trackstat.dat" );
+		strcpy( trackstatFileName + strlen(trackstatFileName),  "_trackstat.dat" );
 	}
  
 	binLogFile = fopen(binLogFileName, "rb");

@@ -127,7 +127,7 @@ void write_trackstat_GPS_col(FILE* trackstatFile,
 	for(obs = 0; obs < trackstatData->numObs; obs++){
 		if( decodeChanSystem((trackstatData->trackstatObsBlock + obs)->chanStat) ==
 		 CHAN_STAT_GPS_ID ){ // Verify it is a GPS log
-			fprintf( trackstatFile, "%5u %9u%2u %2u % .15E % .15E % .6E %2.4f \
+			fprintf( trackstatFile, "%5u %9u %2u %21.15E % 22.15E %7.4f %8.4f \
 %2u %3u %3u %3u\n",
 			 headerData->weekNum, headerData->gpst, 
 			 (trackstatData->trackstatObsBlock + obs)->prn,
@@ -150,7 +150,7 @@ void write_trackstat_GPS_csv(FILE* trackstatFile,
 	for(obs = 0; obs < trackstatData->numObs; obs++){
 		if( decodeChanSystem((trackstatData->trackstatObsBlock + obs)->chanStat) == 
 		 CHAN_STAT_GPS_ID ){ // Verify it is a GPS log
-			fprintf( trackstatFile, "%5u,%9u,%2u,%.15E,%.15E,%.6E,%2.4f,%2u,\
+			fprintf( trackstatFile, "%u,%u,%u,%.15E,%.15E,%.4f,%.4f,%u,\
 %3u,%3u,%3u\n",
 			 headerData->weekNum, headerData->gpst, 
 			 (trackstatData->trackstatObsBlock + obs)->prn,

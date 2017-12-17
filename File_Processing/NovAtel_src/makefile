@@ -3,7 +3,7 @@ parseNovAtel : parseNovAtel.o header.o decoderLibrary.o bestpos.o range.o  track
 	chmod +x parseNovAtel
 
 test : parseNovAtel.o header.o decoderLibrary.o bestpos.o range.o trackstat.o
-	gcc -o parseNovAtel parseNovAtel.o header.o decoderLibrary.o bestpos.o range.o trackstat.o
+	gcc -o parseNovAtel -Wall parseNovAtel.o header.o decoderLibrary.o bestpos.o range.o trackstat.o
 	chmod +x parseNovAtel
 	./parseNovAtel col testLog.gps > testOut.txt
 	less testOut.txt
